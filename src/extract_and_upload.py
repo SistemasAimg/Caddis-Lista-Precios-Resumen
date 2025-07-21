@@ -134,11 +134,16 @@ class CaddisAPIClient:
                 for article in articles_data:
                     article_data = {
                         'id': article.get('id'),
+                    # Calcular precio con IVA incluido
+                    precio_base = float(price_item.get('precio_unitario', 0))
+                    iva_tasa = float(price_item.get('iva_tasa', 0))
+                    precio_con_iva = precio_base * (1 + iva_tasa)
+                    
                         'sku': article.get('sku'),
                         'nombre': article.get('nombre'),
                         'tipo': article.get('tipo'),
                         'marca': article.get('marca'),
-                        'grupo': article.get('grupo')
+                        'precio_unitario': round(precio_con_iva, 2)  # Precio con IVA, redondeado a 2 decimales
                     }
                     articles.append(article_data)
                 
@@ -146,7 +151,7 @@ class CaddisAPIClient:
                 page += 1
                 
                 # Rate limiting
-                time.sleep(0.1)
+                time.sleep(0.5)  # Aumentado para evitar 503 errors
                 
             except requests.exceptions.RequestException as e:
                 # Si es un error 404, ya lo manejamos arriba
@@ -216,7 +221,7 @@ class CaddisAPIClient:
                     page += 1
                     
                     # Rate limiting
-                    time.sleep(0.1)
+                    time.sleep(0.5)  # Aumentado para evitar 503 errors
                     
                 except requests.exceptions.RequestException as e:
                     # Si es un error 404, ya lo manejamos arriba
@@ -363,7 +368,7 @@ class DataProcessor:
             # Add prices for each column
             for lista_id in [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 33]:
                 price_info = sku_prices.get(lista_id, {})
-                precio_unitario = price_info.get('precio_unitario', '')
+                precio_unitario = price_info.get('precio_unitario', '0.00')  # Mostrar 0.00 si no hay precio
                 row.append(precio_unitario)
             
             result_data.append(row)
