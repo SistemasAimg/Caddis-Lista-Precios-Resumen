@@ -132,6 +132,9 @@ class CaddisAPIClient:
                 
                 # Extract required fields for each article
                 for article in articles_data:
+                    # Skip inactive SKUs
+                    if str(article.get('estado', '')).upper() == 'INACTIVO':
+                        continue
                     article_data = {
                         'id': article.get('id'),
                         'sku': article.get('sku'),
@@ -352,8 +355,8 @@ class DataProcessor:
             "Fob Supplier Llc", "Dealer Diggit Ars"
         ]
         
-        # Process all unique SKUs
-        all_skus = set(articles_lookup.keys()) | set(prices_lookup.keys())
+        # Process all unique SKUs (only those from articles, i.e., active SKUs)
+        all_skus = set(articles_lookup.keys())
         result_data = [header]
         
         for sku in sorted(all_skus):
@@ -387,7 +390,7 @@ class DataProcessor:
                     formatted = formatted.replace(',', 'TEMP').replace('.', ',').replace('TEMP', '.')
                     row.append(formatted)
                 else:
-                    row.append('')
+                    row.append('0,00')
 
             result_data.append(row)
         
