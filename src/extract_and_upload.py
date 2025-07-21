@@ -370,23 +370,31 @@ def load_config() -> Dict[str, Any]:
         logger.info("Configuration loaded from config.yaml")
     except FileNotFoundError:
         logger.info("config.yaml not found, using environment variables")
+    except Exception as e:
+        logger.warning(f"Error loading config.yaml: {e}, using environment variables")
+        config = {}
     
     # Override with environment variables
-    env_config = {
-        'caddis_api_url': os.getenv('CADDIS_API_URL'),
-        'caddis_username': os.getenv('CADDIS_USERNAME'),
-        'caddis_password': os.getenv('CADDIS_PASSWORD'),
-        'google_sheets_id': os.getenv('GOOGLE_SHEETS_ID'),
-        'price_lists': os.getenv('PRICE_LISTS', '1,2,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,33').split(',')
-    }
+    # Override with environment variables (only if they exist)
+    if os.getenv('CADDIS_API_URL'):
+        config['caddis_api_url'] = os.getenv('CADDIS_API_URL')
+    if os.getenv('CADDIS_USERNAME'):
+        config['caddis_username'] = os.getenv('CADDIS_USERNAME')
+    if os.getenv('CADDIS_PASSWORD'):
+        config['caddis_password'] = os.getenv('CADDIS_PASSWORD')
+    if os.getenv('GOOGLE_SHEETS_ID'):
+        config['google_sheets_id'] = os.getenv('GOOGLE_SHEETS_ID')
+    if os.getenv('PRICE_LISTS'):
+        price_lists_str = os.getenv('PRICE_LISTS', '1,2,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,33')
+        config['price_lists'] = [int(x.strip()) for x in price_lists_str.split(',') if x.strip().isdigit()]
     
-    # Update config with environment variables (if they exist)
-    for key, value in env_config.items():
-        if value is not None:
-            if key == 'price_lists':
-                config[key] = [int(x.strip()) for x in value if x.strip().isdigit()]
-            else:
-                config[key] = value
+    # Ensure price_lists is set if not already configured
+    if 'price_lists' not in config or not config['price_lists']:
+        config['price_lists'] = [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 33]
+    
+    logger.info(f"Final configuration: caddis_api_url={config.get('caddis_api_url', 'NOT_SET')}, "
+                f"google_sheets_id={'SET' if config.get('google_sheets_id') else 'NOT_SET'}, "
+                f"price_lists_count={len(config.get('price_lists', []))}")
     
     return config
 
