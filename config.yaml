@@ -3,11 +3,11 @@
 
 # Caddis API Configuration
 caddis_api_url: "https://api.caddis.com.ar"  # Caddis API URL
-caddis_username: "GPSMUNDO-TEST"  # Will be overridden by CADDIS_USERNAME env var
-caddis_password: ""  # Will be overridden by CADDIS_PASSWORD env var
+caddis_username: "GPSMUNDO-AIMG"  # Will be overridden by CADDIS_USERNAME env var
+caddis_password: "875c471f5ad0b48114193d35f3ef45f6"  # Will be overridden by CADDIS_PASSWORD env var
 
 # Google Sheets Configuration
-google_sheets_id: ""  # Will be overridden by GOOGLE_SHEETS_ID env var
+google_sheets_id: "1MugPWjNBsaPBVDTbJGpJnuGFfGQPgFhTnj-Z6xDO91c"  # Will be overridden by GOOGLE_SHEETS_ID env var
 
 # Price Lists to Extract (IDs)
 price_lists:

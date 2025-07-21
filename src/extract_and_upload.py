@@ -55,32 +55,37 @@ class CaddisAPIClient:
                 "usuario": self.username,
                 "password": self.password
             }
-            
+
             logger.info("Authenticating with Caddis API...")
             response = self.session.post(login_url, json=login_data, timeout=30)
             response.raise_for_status()
-            
+
             auth_response = response.json()
-            
-            # Extract token from response (adjust based on actual API response structure)
+
+            # Possible locations of the token in the API response
             if 'token' in auth_response:
                 self.token = auth_response['token']
             elif 'access_token' in auth_response:
                 self.token = auth_response['access_token']
-            elif 'body' in auth_response and 'token' in auth_response['body']:
-                self.token = auth_response['body']['token']
-            else:
-                # Log the response to understand the structure
+            elif 'body' in auth_response:
+                # Token may be nested inside "body"
+                if 'token' in auth_response['body']:
+                    self.token = auth_response['body']['token']
+                elif 'access_token' in auth_response['body']:
+                    self.token = auth_response['body']['access_token']
+
+            # Validate that we actually found a token
+            if not self.token:
                 logger.error(f"Unexpected authentication response structure: {auth_response}")
                 raise ValueError("Could not find token in authentication response")
-            
+
             # Update session headers with the token
             self.session.headers.update({
                 'Authorization': f'Bearer {self.token}'
             })
-            
+
             logger.info("Successfully authenticated with Caddis API")
-            
+
         except requests.exceptions.RequestException as e:
             logger.error(f"Authentication failed: {str(e)}")
             raise
