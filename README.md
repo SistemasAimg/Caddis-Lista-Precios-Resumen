@@ -11,7 +11,7 @@ A comprehensive automation solution for extracting data from Caddis API and uplo
 - **Containerized**: Docker-based deployment for consistency and portability
 - **Configurable**: Supports configuration via environment variables and YAML files
 
-## 📋 Prerequisites
+## 📋 Prerequisites asd
 
 1. **Google Cloud Project** with billing enabled
 2. **GitHub Repository** with appropriate secrets configured
