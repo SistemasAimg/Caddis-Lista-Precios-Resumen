@@ -109,6 +109,12 @@ class CaddisAPIClient:
                 logger.info(f"Fetching articles page {page}")
                 
                 response = self.session.get(url, timeout=30)
+                
+                # Si es 404, significa que no hay más páginas
+                if response.status_code == 404:
+                    logger.info(f"No more articles found at page {page} (404 response)")
+                    break
+                
                 response.raise_for_status()
                 
                 data = response.json()
@@ -137,8 +143,13 @@ class CaddisAPIClient:
                 time.sleep(0.1)
                 
             except requests.exceptions.RequestException as e:
-                logger.error(f"Error fetching articles page {page}: {str(e)}")
-                raise
+                # Si es un error 404, ya lo manejamos arriba
+                if hasattr(e, 'response') and e.response.status_code == 404:
+                    logger.info(f"No more articles found at page {page} (404 response)")
+                    break
+                else:
+                    logger.error(f"Error fetching articles page {page}: {str(e)}")
+                    raise
         
         logger.info(f"Total articles extracted: {len(articles)}")
         return articles
@@ -155,33 +166,29 @@ class CaddisAPIClient:
         for lista_id in price_lists:
             logger.info(f"Processing price list {lista_id}")
             
-            # Get first page to determine total pages
-            url = f"{self.base_url}/v1/articulos/precios?pagina=1&lista={lista_id}"
-            response = self.session.get(url, timeout=30)
-            response.raise_for_status()
-            
-            data = response.json()
-            head = data.get('head', {})
-            paginacion = head.get('paginacion', {})
-            total_items = paginacion.get('total', 0)
-            limite = paginacion.get('limite', 50)
-            
-            if total_items == 0:
-                logger.warning(f"No items found for price list {lista_id}")
-                continue
-            
-            total_pages = (total_items + limite - 1) // limite
-            logger.info(f"Price list {lista_id} has {total_items} items across {total_pages} pages")
-            
-            # Iterate through all pages
-            for page in range(1, total_pages + 1):
+            # Iterate through pages until we get a 404 or empty response
+            page = 1
+            while True:
                 try:
                     url = f"{self.base_url}/v1/articulos/precios?pagina={page}&lista={lista_id}"
+                    logger.info(f"Fetching prices for list {lista_id}, page {page}")
+                    
                     response = self.session.get(url, timeout=30)
+                    
+                    # Si es 404, significa que no hay más páginas para esta lista
+                    if response.status_code == 404:
+                        logger.info(f"No more pages for price list {lista_id} at page {page} (404 response)")
+                        break
+                    
                     response.raise_for_status()
                     
                     data = response.json()
                     body = data.get('body', [])
+                    
+                    # Si no hay datos en el body, terminamos con esta lista
+                    if not body:
+                        logger.info(f"No more data for price list {lista_id} at page {page}")
+                        break
                     
                     # Extract required fields for each price entry
                     for price_item in body:
@@ -194,13 +201,21 @@ class CaddisAPIClient:
                         prices.append(price_data)
                     
                     logger.info(f"Extracted {len(body)} prices from list {lista_id}, page {page}")
+                    page += 1
                     
                     # Rate limiting
                     time.sleep(0.1)
                     
                 except requests.exceptions.RequestException as e:
-                    logger.error(f"Error fetching prices for list {lista_id}, page {page}: {str(e)}")
-                    raise
+                    # Si es un error 404, ya lo manejamos arriba
+                    if hasattr(e, 'response') and e.response.status_code == 404:
+                        logger.info(f"No more pages for price list {lista_id} at page {page} (404 response)")
+                        break
+                    else:
+                        logger.error(f"Error fetching prices for list {lista_id}, page {page}: {str(e)}")
+                        # Para otros errores, continuamos con la siguiente lista en lugar de fallar completamente
+                        logger.warning(f"Skipping remaining pages for price list {lista_id} due to error")
+                        break
         
         logger.info(f"Total price entries extracted: {len(prices)}")
         return prices
