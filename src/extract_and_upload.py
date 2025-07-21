@@ -288,6 +288,19 @@ class GoogleSheetsClient:
             if data:
                 worksheet.update('A1', data)
                 logger.info(f"Updated {len(data)} rows in worksheet {sheet_name}")
+                # Apply number/text formats
+                try:
+                    # Column A (SKU) as plain text
+                    worksheet.format('A:A', {
+                        "numberFormat": {"type": "TEXT"}
+                    })
+                    # Columns G to AD (price lists) as number with two decimals
+                    worksheet.format('G:AD', {
+                        "numberFormat": {"type": "NUMBER", "pattern": "#,##0.00"}
+                    })
+                    logger.info("Applied column formats (SKU as text, prices as number)")
+                except Exception as fmt_err:
+                    logger.warning(f"Could not apply formats: {fmt_err}")
             
         except Exception as e:
             logger.error(f"Error updating Google Sheet: {str(e)}")
