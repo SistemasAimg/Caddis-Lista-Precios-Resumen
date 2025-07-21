@@ -69,7 +69,7 @@ jobs:
             --cpu=1000m \
             --task-timeout=3600 \
             --parallelism=1 \
-            --task-count=1
+            --tasks=1
         fi
 
     - name: Verify deployment
