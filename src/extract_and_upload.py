@@ -203,12 +203,22 @@ class CaddisAPIClient:
                         break
                     
                     # Extract required fields for each price entry
-                    for price_item in prices_data:
+                    for price_item_dict in prices_data:
+                        # Calcula precio con IVA incluido
+                        try:
+                            precio_base = float(price_item_dict.get('precio_unitario', 0))
+                            iva_rate    = float(price_item_dict.get('iva_tasa', 0))  # ej. 0.105
+                        except (TypeError, ValueError):
+                            logger.warning(f"Precio o IVA no numérico para SKU {price_item_dict.get('sku')}")
+                            continue
+
+                        precio_con_iva = round(precio_base * (1 + iva_rate), 2)
+
                         price_data = {
-                            'sku': price_item.get('sku'),
-                            'lista_id': lista_id,
-                            'iva_tasa': price_item.get('iva_tasa'),
-                            'precio_unitario': price_item.get('precio_unitario')
+                            'sku'            : price_item_dict.get('sku'),
+                            'lista_id'       : lista_id,
+                            'iva_tasa'       : iva_rate,           # guardamos como 0.105
+                            'precio_unitario': precio_con_iva      # ya incluye IVA
                         }
                         prices.append(price_data)
                     
@@ -349,23 +359,36 @@ class DataProcessor:
         for sku in sorted(all_skus):
             article = articles_lookup.get(sku, {})
             sku_prices = prices_lookup.get(sku, {})
-            
-            # Basic article information
+
+            # IVA (tomamos el de la lista 1 si existe)
+            iva_rate = sku_prices.get(1, {}).get('iva_tasa', '')
+            if iva_rate != '':
+                iva_percent = round(float(iva_rate) * 100, 1)       # 0.105 -> 10.5
+                iva_display = str(iva_percent).replace('.', ',')    # "10,5"
+            else:
+                iva_display = ''
+
             row = [
-                sku,  # Código
-                article.get('tipo', ''),  # Tipo
-                article.get('nombre', ''),  # Artículo
-                article.get('grupo', ''),  # Grupo
-                article.get('marca', ''),  # Marca
-                sku_prices.get(1, {}).get('iva_tasa', '') if 1 in sku_prices else ''  # IVA from first price list
+                sku,                                # Código
+                article.get('tipo', ''),            # Tipo
+                article.get('nombre', ''),          # Artículo
+                article.get('grupo', ''),           # Grupo
+                article.get('marca', ''),           # Marca
+                iva_display                         # IVA %
             ]
-            
+
             # Add prices for each column
             for lista_id in [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 33]:
                 price_info = sku_prices.get(lista_id, {})
-                precio_unitario = price_info.get('precio_unitario', '0.00')  # Mostrar 0.00 si no hay precio
-                row.append(precio_unitario)
-            
+                precio_unitario = price_info.get('precio_unitario', '')
+                if precio_unitario != '':
+                    # Formateamos con miles separados por punto y decimales con coma (AR)
+                    formatted = f"{float(precio_unitario):,.2f}"
+                    formatted = formatted.replace(',', 'TEMP').replace('.', ',').replace('TEMP', '.')
+                    row.append(formatted)
+                else:
+                    row.append('')
+
             result_data.append(row)
         
         logger.info(f"Combined data for {len(result_data)-1} products")
