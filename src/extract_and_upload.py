@@ -134,16 +134,11 @@ class CaddisAPIClient:
                 for article in articles_data:
                     article_data = {
                         'id': article.get('id'),
-                    # Calcular precio con IVA incluido
-                    precio_base = float(price_item.get('precio_unitario', 0))
-                    iva_tasa = float(price_item.get('iva_tasa', 0))
-                    precio_con_iva = precio_base * (1 + iva_tasa)
-                    
                         'sku': article.get('sku'),
                         'nombre': article.get('nombre'),
                         'tipo': article.get('tipo'),
                         'marca': article.get('marca'),
-                        'precio_unitario': round(precio_con_iva, 2)  # Precio con IVA, redondeado a 2 decimales
+                        'grupo': article.get('grupo')
                     }
                     articles.append(article_data)
                 
