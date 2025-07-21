@@ -118,14 +118,20 @@ class CaddisAPIClient:
                 response.raise_for_status()
                 
                 data = response.json()
-                body = data.get('body', [])
                 
-                if not body:
+                # Para /v1/articulos, body es un array directo
+                body_data = data.get('body', [])
+                if isinstance(body_data, list):
+                    articles_data = body_data
+                else:
+                    articles_data = []
+                
+                if not articles_data:
                     logger.info(f"No more articles found at page {page}")
                     break
                 
                 # Extract required fields for each article
-                for article in body:
+                for article in articles_data:
                     article_data = {
                         'id': article.get('id'),
                         'sku': article.get('sku'),
@@ -136,7 +142,7 @@ class CaddisAPIClient:
                     }
                     articles.append(article_data)
                 
-                logger.info(f"Extracted {len(body)} articles from page {page}")
+                logger.info(f"Extracted {len(articles_data)} articles from page {page}")
                 page += 1
                 
                 # Rate limiting
@@ -183,15 +189,21 @@ class CaddisAPIClient:
                     response.raise_for_status()
                     
                     data = response.json()
-                    body = data.get('body', [])
+                    
+                    # Para /v1/articulos/precios, body es un objeto con articulos dentro
+                    body_data = data.get('body', {})
+                    if isinstance(body_data, dict):
+                        prices_data = body_data.get('articulos', [])
+                    else:
+                        prices_data = []
                     
                     # Si no hay datos en el body, terminamos con esta lista
-                    if not body:
+                    if not prices_data:
                         logger.info(f"No more data for price list {lista_id} at page {page}")
                         break
                     
                     # Extract required fields for each price entry
-                    for price_item in body:
+                    for price_item in prices_data:
                         price_data = {
                             'sku': price_item.get('sku'),
                             'lista_id': lista_id,
@@ -200,7 +212,7 @@ class CaddisAPIClient:
                         }
                         prices.append(price_data)
                     
-                    logger.info(f"Extracted {len(body)} prices from list {lista_id}, page {page}")
+                    logger.info(f"Extracted {len(prices_data)} prices from list {lista_id}, page {page}")
                     page += 1
                     
                     # Rate limiting
