@@ -1,0 +1,44 @@
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: caddis-automation
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    spec:
+      template:
+        spec:
+          serviceAccountName: caddis-automation-sa
+          timeoutSeconds: 3600
+          containers:
+          - name: caddis-automation
+            image: REGION-docker.pkg.dev/PROJECT_ID/REPOSITORY/caddis-automation:latest
+            env:
+            - name: CADDIS_API_URL
+              value: "https://api.caddis.com.ar"
+            - name: CADDIS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: caddis-secrets
+                  key: username
+            - name: CADDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: caddis-secrets
+                  key: password
+            - name: GOOGLE_SHEETS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: caddis-secrets
+                  key: sheets-id
+            resources:
+              limits:
+                memory: "2Gi"
+                cpu: "1000m"
+              requests:
+                memory: "1Gi"
+                cpu: "500m"
+          restartPolicy: Never
+      parallelism: 1
+      completions: 1

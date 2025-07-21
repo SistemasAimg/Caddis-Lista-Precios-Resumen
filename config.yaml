@@ -1,0 +1,42 @@
+# Configuration file for Caddis API Automation
+# Environment variables will override these values
+
+# Caddis API Configuration
+caddis_api_url: "https://api.caddis.com.ar"  # Caddis API URL
+caddis_username: "GPSMUNDO-TEST"  # Will be overridden by CADDIS_USERNAME env var
+caddis_password: ""  # Will be overridden by CADDIS_PASSWORD env var
+
+# Google Sheets Configuration
+google_sheets_id: ""  # Will be overridden by GOOGLE_SHEETS_ID env var
+
+# Price Lists to Extract (IDs)
+price_lists:
+  - 1   # Minorista Ars
+  - 2   # Dealer Ars
+  - 3   # Dealer 1 Ars
+  - 5   # Dealer 30d Ars
+  - 7   # Nautica Dealer Usd
+  - 8   # Dealer 60d Ars
+  - 9   # Mino Ml Premium Ars
+  - 10  # Sub Distribuidor Usd
+  - 11  # Dealer 55mkup Ars
+  - 12  # Dealer 50mkup Ars
+  - 13  # Anterior Mino Ars
+  - 14  # Mixta Ars
+  - 15  # Grouping 70mkup Ars
+  - 16  # Dealer Cencosud Ars
+  - 17  # Nautica Dealer 1 Usd
+  - 18  # Nautica Dealer Ars
+  - 19  # Nautica Dealer 1 Ars
+  - 20  # Fob Standard Usd
+  - 21  # Dealer Golf Ars
+  - 22  # Gpsmundo Srl
+  - 23  # Dealer Meli Ars
+  - 24  # Dealer 5g Ars
+  - 25  # Fob Supplier Llc
+  - 33  # Dealer Diggit Ars
+
+# Rate limiting and retry configuration
+rate_limit_delay: 0.1  # seconds between API calls
+request_timeout: 30    # seconds
+max_retries: 3

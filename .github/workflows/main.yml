@@ -1,0 +1,78 @@
+name: Deploy Caddis Lista Precios to Cloud Run Jobs
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  PROJECT_ID: storage-entorno-de-desarrollo
+  JOB_NAME: caddis-lista-precios-resumen
+  REGION: us-central1
+  WORKLOAD_IDENTITY_PROVIDER: projects/104248082609/locations/global/workloadIdentityPools/github/providers/github-provider-v2
+  GOOGLE_SHEETS_ID: 1MugPWjNBsaPBVDTbJGpJnuGFfGQPgFhTnj-Z6xDO91c
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - id: auth
+      name: Authenticate with Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ env.WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: cloudrun@storage-entorno-de-desarrollo.iam.gserviceaccount.com
+        project_id: ${{ env.PROJECT_ID }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+        install_components: 'beta,gke-gcloud-auth-plugin'
+
+    - name: Configure Docker for GCP
+      run: gcloud auth configure-docker gcr.io --quiet
+
+    - name: Build and Push Docker image
+      run: |
+        docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}:${{ github.sha }} .
+        docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}:${{ github.sha }}
+
+    - name: Deploy to Cloud Run Jobs
+      run: |
+        # Intentar actualizar el job existente
+        if gcloud run jobs describe ${{ env.JOB_NAME }} --region ${{ env.REGION }} >/dev/null 2>&1; then
+          echo "Job exists, updating..."
+          gcloud run jobs update ${{ env.JOB_NAME }} \
+            --image gcr.io/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --set-env-vars "CADDIS_API_URL=https://api.caddis.com.ar,CADDIS_USERNAME=${{ secrets.CADDIS_USERNAME }},CADDIS_PASSWORD=${{ secrets.CADDIS_PASSWORD }},GOOGLE_SHEETS_ID=${{ env.GOOGLE_SHEETS_ID }}" \
+            --service-account=cloudrun@storage-entorno-de-desarrollo.iam.gserviceaccount.com \
+            --memory=2Gi \
+            --cpu=1000m \
+            --task-timeout=3600
+        else
+          echo "Job doesn't exist, creating..."
+          gcloud run jobs create ${{ env.JOB_NAME }} \
+            --image gcr.io/${{ env.PROJECT_ID }}/${{ env.JOB_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --set-env-vars "CADDIS_API_URL=https://api.caddis.com.ar,CADDIS_USERNAME=${{ secrets.CADDIS_USERNAME }},CADDIS_PASSWORD=${{ secrets.CADDIS_PASSWORD }},GOOGLE_SHEETS_ID=${{ env.GOOGLE_SHEETS_ID }}" \
+            --service-account=cloudrun@storage-entorno-de-desarrollo.iam.gserviceaccount.com \
+            --memory=2Gi \
+            --cpu=1000m \
+            --task-timeout=3600 \
+            --parallelism=1 \
+            --task-count=1
+        fi
+
+    - name: Verify deployment
+      run: |
+        echo "Deployment completed successfully!"
+        gcloud run jobs describe ${{ env.JOB_NAME }} --region=${{ env.REGION }} --format="value(metadata.name,spec.template.spec.template.spec.containers[0].image)"
