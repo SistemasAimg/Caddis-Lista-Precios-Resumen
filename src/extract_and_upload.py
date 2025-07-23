@@ -398,10 +398,10 @@ class DataProcessor:
                 price_info = sku_prices.get(lista_id, {})
                 precio_unitario = price_info.get('precio_unitario', '')
                 if precio_unitario != '':
-                    # Formateamos con miles separados por punto y decimales con coma (AR)
-                    formatted = f"{float(precio_unitario):,.2f}"
-                    formatted = formatted.replace(',', 'TEMP').replace('.', ',').replace('TEMP', '.')
-                    row.append(formatted)
+                    try:
+                        row.append(round(float(precio_unitario), 2))   # número plano
+                    except ValueError:
+                        row.append('')  # si falla la conversión mantenemos vacío
                 else:
                     row.append('')
 
