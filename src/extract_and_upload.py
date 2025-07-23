@@ -383,10 +383,9 @@ class DataProcessor:
             # IVA (tomamos el de la lista 1 si existe)
             iva_rate = sku_prices.get(1, {}).get('iva_tasa', '')
             if iva_rate != '':
-                iva_percent = round(float(iva_rate) * 100, 1)       # 0.105 -> 10.5
-                iva_display = str(iva_percent).replace('.', ',')    # "10,5"
+                iva_display = round(float(iva_rate) * 100, 1)   # número 10.5
             else:
-                iva_display = ''
+                iva_display = 0
 
             row = [
                 sku,                                # Código
@@ -394,7 +393,7 @@ class DataProcessor:
                 article.get('nombre', ''),          # Artículo
                 article.get('grupo', ''),           # Grupo
                 article.get('marca', ''),           # Marca
-                iva_display                         # IVA %
+                iva_display                         # IVA % (numeric)
             ]
 
             # Add prices for each column
