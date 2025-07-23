@@ -169,42 +169,62 @@ class CaddisAPIClient:
         Iterates through all pages and all price lists
         """
         prices = []
-        
+
         logger.info("Starting prices extraction...")
-        
+
         for lista_id in price_lists:
             logger.info(f"Processing price list {lista_id}")
-            
+
             # Iterate through pages until we get a 404 or empty response
             page = 1
             while True:
                 try:
                     url = f"{self.base_url}/v1/articulos/precios?pagina={page}&lista={lista_id}&mostrar_sin_precio=true"
                     logger.info(f"Fetching prices for list {lista_id}, page {page}")
-                    
-                    response = self.session.get(url, timeout=30)
-                    
+
+                    # ---- retry with exponential back‑off ----
+                    MAX_RETRIES = 4
+                    wait = 2  # segundos
+                    for attempt in range(MAX_RETRIES):
+                        try:
+                            response = self.session.get(url, timeout=30)
+                            # 503 → raise to trigger except
+                            if response.status_code == 503:
+                                response.raise_for_status()
+                            break  # éxito
+                        except requests.exceptions.RequestException as e:
+                            if (hasattr(e, 'response') and getattr(e.response, 'status_code', None) == 503
+                                    and attempt < MAX_RETRIES - 1):
+                                logger.warning(f"503 lista {lista_id} pág {page}. Reintento {attempt+1}/{MAX_RETRIES} en {wait}s...")
+                                time.sleep(wait)
+                                wait *= 2
+                                continue
+                            else:
+                                raise
+                    # ---- end retry block ----
+                    # old: response = self.session.get(url, timeout=30)
+
                     # Si es 404, significa que no hay más páginas para esta lista
                     if response.status_code == 404:
                         logger.info(f"No more pages for price list {lista_id} at page {page} (404 response)")
                         break
-                    
+
                     response.raise_for_status()
-                    
+
                     data = response.json()
-                    
+
                     # Para /v1/articulos/precios, body es un objeto con articulos dentro
                     body_data = data.get('body', {})
                     if isinstance(body_data, dict):
                         prices_data = body_data.get('articulos', [])
                     else:
                         prices_data = []
-                    
+
                     # Si no hay datos en el body, terminamos con esta lista
                     if not prices_data:
                         logger.info(f"No more data for price list {lista_id} at page {page}")
                         break
-                    
+
                     # Extract required fields for each price entry
                     for price_item_dict in prices_data:
                         # Calcula precio con IVA incluido
@@ -224,13 +244,13 @@ class CaddisAPIClient:
                             'precio_unitario': precio_con_iva      # ya incluye IVA
                         }
                         prices.append(price_data)
-                    
+
                     logger.info(f"Extracted {len(prices_data)} prices from list {lista_id}, page {page}")
                     page += 1
-                    
+
                     # Rate limiting
                     time.sleep(0.5)  # Aumentado para evitar 503 errors
-                    
+
                 except requests.exceptions.RequestException as e:
                     # Si es un error 404, ya lo manejamos arriba
                     if hasattr(e, 'response') and e.response.status_code == 404:
@@ -241,7 +261,7 @@ class CaddisAPIClient:
                         # Para otros errores, continuamos con la siguiente lista en lugar de fallar completamente
                         logger.warning(f"Skipping remaining pages for price list {lista_id} due to error")
                         break
-        
+
         logger.info(f"Total price entries extracted: {len(prices)}")
         return prices
 
@@ -439,7 +459,10 @@ def load_config() -> Dict[str, Any]:
     if os.getenv('GOOGLE_SHEETS_ID'):
         config['google_sheets_id'] = os.getenv('GOOGLE_SHEETS_ID')
     if os.getenv('PRICE_LISTS'):
-        price_lists_str = os.getenv('PRICE_LISTS', '1,2,3,5,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,33')
+        price_lists_str = os.getenv(
+            'PRICE_LISTS',
+            '1,2,3,5,7,8,9,12,14,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33'
+        )
         config['price_lists'] = [int(x.strip()) for x in price_lists_str.split(',') if x.strip().isdigit()]
     
     # Ensure price_lists is set if not already configured
