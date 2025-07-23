@@ -407,7 +407,7 @@ class DataProcessor:
                     except ValueError:
                         row.append('')  # si falla la conversión mantenemos vacío
                 else:
-                    row.append('')
+                    row.append(0)  # sin precio => 0
 
             result_data.append(row)
         
