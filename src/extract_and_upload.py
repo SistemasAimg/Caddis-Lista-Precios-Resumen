@@ -315,29 +315,29 @@ class DataProcessor:
     
     # Price list mapping to column names
     PRICE_LIST_MAPPING = {
-        1: "Minorista Ars",
-        2: "Dealer Ars", 
-        3: "Dealer 1 Ars",
-        5: "Dealer 30d Ars",
-        7: "Nautica Dealer Usd",
-        8: "Dealer 60d Ars",
-        9: "Mino Ml Premium Ars",
-        10: "Sub Distribuidor Usd",
-        11: "Dealer 55mkup Ars",
-        12: "Dealer 50mkup Ars",
-        13: "Anterior Mino Ars",
-        14: "Mixta Ars",
-        15: "Grouping 70mkup Ars",
-        16: "Dealer Cencosud Ars",
-        17: "Nautica Dealer 1 Usd",
-        18: "Nautica Dealer Ars",
-        19: "Nautica Dealer 1 Ars",
-        20: "Fob Standard Usd",
-        21: "Dealer Golf Ars",
-        22: "Gpsmundo Srl",
-        23: "Dealer Meli Ars",
-        24: "Dealer 5g Ars",
-        25: "Fob Supplier Llc",
+        1:  "Minorista Ars",
+        2:  "Dealer Ars",
+        3:  "Dealer 1 Ars",
+        5:  "Dealer 30d Ars",
+        7:  "Nautica Dealer Usd",
+        8:  "Dealer 60d Ars",
+        9:  "Mino Ml Premium Ars",
+        12: "Sub Distribuidor Usd",
+        14: "Dealer 55mkup Ars",
+        19: "Dealer 50mkup Ars",
+        20: "Anterior Mino Ars",
+        21: "Mixta Ars",
+        22: "Grouping 70mkup Ars",
+        23: "Dealer Cencosud Ars",
+        24: "Nautica Dealer 1 Usd",
+        25: "Nautica Dealer Ars",
+        26: "Nautica Dealer 1 Ars",
+        27: "Fob Standard Usd",
+        28: "Dealer Golf Ars",
+        29: "Gpsmundo Srl",
+        30: "Dealer Meli Ars",
+        31: "Dealer 5g Ars",
+        32: "Fob Supplier Llc",
         33: "Dealer Diggit Ars"
     }
     
@@ -397,7 +397,7 @@ class DataProcessor:
             ]
 
             # Add prices for each column
-            for lista_id in [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 33]:
+            for lista_id in [1, 2, 3, 5, 7, 8, 9, 12, 14, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]:
                 price_info = sku_prices.get(lista_id, {})
                 precio_unitario = price_info.get('precio_unitario', '')
                 if precio_unitario != '':
@@ -444,7 +444,7 @@ def load_config() -> Dict[str, Any]:
     
     # Ensure price_lists is set if not already configured
     if 'price_lists' not in config or not config['price_lists']:
-        config['price_lists'] = [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 33]
+        config['price_lists'] = [1, 2, 3, 5, 7, 8, 9, 12, 14, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
     
     logger.info(f"Final configuration: caddis_api_url={config.get('caddis_api_url', 'NOT_SET')}, "
                 f"google_sheets_id={'SET' if config.get('google_sheets_id') else 'NOT_SET'}, "
