@@ -179,7 +179,7 @@ class CaddisAPIClient:
             page = 1
             while True:
                 try:
-                    url = f"{self.base_url}/v1/articulos/precios?pagina={page}&lista={lista_id}"
+                    url = f"{self.base_url}/v1/articulos/precios?pagina={page}&lista={lista_id}&mostrar_sin_precio=true"
                     logger.info(f"Fetching prices for list {lista_id}, page {page}")
                     
                     response = self.session.get(url, timeout=30)
@@ -403,7 +403,7 @@ class DataProcessor:
                     formatted = formatted.replace(',', 'TEMP').replace('.', ',').replace('TEMP', '.')
                     row.append(formatted)
                 else:
-                    row.append('0,00')
+                    row.append('')
 
             result_data.append(row)
         
