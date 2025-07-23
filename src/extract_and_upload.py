@@ -298,6 +298,10 @@ class GoogleSheetsClient:
                     worksheet.format('G:AD', {
                         "numberFormat": {"type": "NUMBER", "pattern": "#,##0.00"}
                     })
+                    # Column F (IVA) as number with one decimal
+                    worksheet.format('F:F', {
+                        "numberFormat": {"type": "NUMBER", "pattern": "#,##0.0"}
+                    })
                     logger.info("Applied column formats (SKU as text, prices as number)")
                 except Exception as fmt_err:
                     logger.warning(f"Could not apply formats: {fmt_err}")
