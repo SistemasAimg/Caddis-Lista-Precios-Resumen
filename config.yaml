@@ -2,12 +2,13 @@
 # Environment variables will override these values
 
 # Caddis API Configuration
-caddis_api_url: "https://api.caddis.com.ar"  # Caddis API URL
-caddis_username: "GPSMUNDO-AIMG"  # Will be overridden by CADDIS_USERNAME env var
-caddis_password: "875c471f5ad0b48114193d35f3ef45f6"  # Will be overridden by CADDIS_PASSWORD env var
+caddis_api_url: "https://api.caddis.com.ar"  # URL base de la API
+# Las credenciales NO se guardan acá. Se leen de las variables de entorno:
+#   CADDIS_USERNAME y CADDIS_PASSWORD
 
 # Google Sheets Configuration
-google_sheets_id: "1MugPWjNBsaPBVDTbJGpJnuGFfGQPgFhTnj-Z6xDO91c"  # Will be overridden by GOOGLE_SHEETS_ID env var
+# Este valor se sobreescribe con la env var GOOGLE_SHEETS_ID
+google_sheets_id: ""
 
 # Price Lists to Extract (IDs)
 price_lists:
@@ -18,25 +19,25 @@ price_lists:
   - 7   # Nautica Dealer Usd
   - 8   # Dealer 60d Ars
   - 9   # Mino Ml Premium Ars
-  - 10  # Sub Distribuidor Usd
-  - 11  # Dealer 55mkup Ars
-  - 12  # Dealer 50mkup Ars
-  - 13  # Anterior Mino Ars
-  - 14  # Mixta Ars
-  - 15  # Grouping 70mkup Ars
-  - 16  # Dealer Cencosud Ars
-  - 17  # Nautica Dealer 1 Usd
-  - 18  # Nautica Dealer Ars
-  - 19  # Nautica Dealer 1 Ars
-  - 20  # Fob Standard Usd
-  - 21  # Dealer Golf Ars
-  - 22  # Gpsmundo Srl
-  - 23  # Dealer Meli Ars
-  - 24  # Dealer 5g Ars
-  - 25  # Fob Supplier Llc
+  - 12  # Sub Distribuidor Usd
+  - 14  # Dealer 55mkup Ars
+  - 19  # Dealer 50mkup Ars
+  - 20  # Anterior Mino Ars
+  - 21  # Mixta Ars
+  - 22  # Grouping 70mkup Ars
+  - 23  # Dealer Cencosud Ars
+  - 24  # Nautica Dealer 1 Usd
+  - 25  # Nautica Dealer Ars
+  - 26  # Nautica Dealer 1 Ars
+  - 27  # Fob Standard Usd
+  - 28  # Dealer Golf Ars
+  - 29  # Gpsmundo Srl
+  - 30  # Dealer Meli Ars
+  - 31  # Dealer 5g Ars
+  - 32  # Fob Supplier Llc
   - 33  # Dealer Diggit Ars
 
 # Rate limiting and retry configuration
-rate_limit_delay: 0.1  # seconds between API calls
-request_timeout: 30    # seconds
-max_retries: 3
+rate_limit_delay: 1.0   # seconds between API calls (antes 0.1)
+request_timeout: 60     # seconds
+max_retries: 5          # reintentos por página/lista
