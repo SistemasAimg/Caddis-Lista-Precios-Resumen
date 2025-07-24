@@ -505,7 +505,10 @@ def main():
         articles = caddis_client.get_articles()
         
         logger.info("Phase 2: Extracting prices...")
-        price_lists = config.get('price_lists', [1, 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 33])
+        # Use only the finalized list of IDs (if not provided in config/env)
+        default_price_lists = [1, 2, 3, 5, 7, 8, 9, 12, 14, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+        price_lists = config.get('price_lists', default_price_lists)
+        logger.info(f"Processing price lists: {price_lists}")
         prices = caddis_client.get_prices(price_lists)
         
         # Process and combine data
